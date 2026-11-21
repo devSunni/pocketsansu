@@ -724,11 +724,9 @@
                 <path class="seg" d="M101 66 Q105 72 101 74 Q97 72 101 66 Z"/>
               </g>
 
-              <!-- Pierrot Arms: Idle Ready -->
-              <g id="seg-arms-idle">
-                <path class="seg-stroke" d="M70 112 L50 118" stroke-width="5.5" stroke-linecap="round"/>
-                <path class="seg-stroke" d="M94 112 L114 118" stroke-width="5.5" stroke-linecap="round"/>
-              </g>
+              <!-- Pierrot Arms: Idle Ready (Split L / R so opposite arm stays visible during catch) -->
+              <path id="seg-arm-idle-l" class="seg-stroke" d="M70 112 L50 118" stroke-width="5.5" stroke-linecap="round"/>
+              <path id="seg-arm-idle-r" class="seg-stroke" d="M94 112 L114 118" stroke-width="5.5" stroke-linecap="round"/>
 
               <!-- Pierrot Arm: Catch Left (reaches step 4 L!) -->
               <g id="seg-arm-catch-l">
@@ -757,16 +755,16 @@
               <!-- Upper Equation Row (Quiz operands + symbols) -->
               <g id="lcd-eq-digits"></g>
 
-              <!-- Math Operator Segments (+, -, ×, =) -->
+              <!-- Math Operator Segments (+, -, ×, =) - Non-overlapping stack -->
               <g id="seg-op-plus">
-                <rect class="seg" x="220" y="49" width="14" height="3.2" rx="1"/>
-                <rect class="seg" x="225.4" y="43.6" width="3.2" height="14" rx="1"/>
+                <rect class="seg" x="221" y="37" width="12" height="2.8" rx="0.9"/>
+                <rect class="seg" x="225.6" y="32.4" width="2.8" height="12" rx="0.9"/>
               </g>
               <g id="seg-op-minus">
-                <rect class="seg" x="220" y="62" width="14" height="3.2" rx="1"/>
+                <rect class="seg" x="221" y="50.5" width="12" height="2.8" rx="0.9"/>
               </g>
               <g id="seg-op-mul">
-                <path class="seg-stroke" d="M222 45 L232 55 M232 45 L222 55" stroke-width="3.2" stroke-linecap="round"/>
+                <path class="seg-stroke" d="M222.5 60.5 L231.5 69.5 M231.5 60.5 L222.5 69.5" stroke-width="2.8" stroke-linecap="round"/>
               </g>
               <g id="seg-op-eq">
                 <rect class="seg" x="298" y="47" width="14" height="3" rx="1"/>
@@ -1065,8 +1063,10 @@
           setSeg("seg-arms-happy", true);
         } else if (pose === "catchL") {
           setSeg("seg-arm-catch-l", true);
+          setSeg("seg-arm-idle-r", true);
           setSeg("seg-spark-l", true);
         } else if (pose === "catchR") {
+          setSeg("seg-arm-idle-l", true);
           setSeg("seg-arm-catch-r", true);
           setSeg("seg-spark-r", true);
         } else if (pose === "catchBoth") {
@@ -1075,7 +1075,8 @@
           setSeg("seg-spark-l", true);
           setSeg("seg-spark-r", true);
         } else {
-          setSeg("seg-arms-idle", true);
+          setSeg("seg-arm-idle-l", true);
+          setSeg("seg-arm-idle-r", true);
         }
 
         // Mode-specific LCD rendering

@@ -199,6 +199,7 @@
       // Spawn logic
       const maxBalls = g.score >= 10 ? 2 : 1;
       if (g.balls.length === 0) {
+        soundLane = g.nextLane;
         spawnBall(g.nextLane);
         g.nextLane = 1 - g.nextLane;
       } else if (g.balls.length < maxBalls) {
