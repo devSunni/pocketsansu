@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe156"/>
+      <stop offset="100%" stop-color="#e5ae10"/>
+    </linearGradient>
+    <linearGradient id="lcd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8b29b"/>
+      <stop offset="100%" stop-color="#919b85"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer yellow body -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Handle cutout -->
+  <rect x="156" y="34" width="200" height="44" rx="22" fill="#2b2108" opacity="0.22"/>
+  <rect x="164" y="40" width="184" height="32" rx="16" fill="#231c0d"/>
+  <!-- Faceplate bezel -->
+  <rect x="46" y="100" width="420" height="232" rx="28" fill="#c82820" stroke="#7d1510" stroke-width="6"/>
+  <!-- LCD frame -->
+  <rect x="74" y="128" width="364" height="176" rx="14" fill="#2c3029"/>
+  <!-- LCD screen -->
+  <rect x="86" y="140" width="340" height="152" rx="8" fill="url(#lcd)"/>
+  <!-- LCD Pierrot silhouette -->
+  <g fill="#1c2218">
+    <!-- Hat -->
+    <polygon points="172,158 150,192 194,192"/>
+    <circle cx="172" cy="154" r="6"/>
+    <!-- Head -->
+    <circle cx="172" cy="208" r="18"/>
+    <!-- Body -->
+    <polygon points="172,226 146,272 198,272"/>
+    <!-- Arms up catching -->
+    <rect x="122" y="218" width="32" height="10" rx="5" transform="rotate(-24 138 223)"/>
+    <rect x="190" y="218" width="32" height="10" rx="5" transform="rotate(24 206 223)"/>
+    <!-- Balls -->
+    <circle cx="132" cy="176" r="11"/>
+    <circle cx="212" cy="196" r="11"/>
+    <!-- 7-seg "100" / math -->
+    <text x="248" y="222" font-family="monospace" font-weight="900" font-size="46" letter-spacing="2">7×8</text>
+    <text x="272" y="272" font-family="monospace" font-weight="900" font-size="48">=56</text>
+  </g>
+  <!-- Tactile buttons row 1 (yellow) -->
+  <g fill="#ffdf4d" stroke="#b38300" stroke-width="4">
+    <rect x="52" y="356" width="70" height="44" rx="10"/>
+    <rect x="136" y="356" width="70" height="44" rx="10"/>
+    <rect x="220" y="356" width="70" height="44" rx="10"/>
+    <rect x="304" y="356" width="70" height="44" rx="10"/>
+    <rect x="388" y="356" width="70" height="44" rx="10"/>
+  </g>
+  <!-- Tactile buttons row 2 (orange) -->
+  <g fill="#f0651a" stroke="#9e3906" stroke-width="4">
+    <rect x="52" y="420" width="90" height="46" rx="10"/>
+    <rect x="156" y="420" width="58" height="46" rx="10"/>
+    <rect x="228" y="420" width="58" height="46" rx="10"/>
+    <rect x="300" y="420" width="58" height="46" rx="10"/>
+    <rect x="372" y="420" width="86" height="46" rx="10"/>
+  </g>
+</svg>
+

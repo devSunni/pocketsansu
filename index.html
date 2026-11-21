@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#f3c322" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="산수천재" />
+  <title>NEW 산수천재 — 레트로 휴대용 전자게임기</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f5c422'/%3E%3Crect x='20' y='5' width='24' height='6' rx='3' fill='%23231c0d'/%3E%3Crect x='7' y='15' width='50' height='27' rx='5' fill='%23c82820'/%3E%3Crect x='11' y='19' width='42' height='19' rx='2' fill='%239ea792'/%3E%3Ctext x='15' y='33' font-family='monospace' font-weight='bold' font-size='12' fill='%231b2117'%3E7x8=56%3C/text%3E%3Crect x='8' y='46' width='48' height='10' rx='3' fill='%23ee6518'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <style>
+    :root {
+      --desk-bg: #1e1c18;
+      --body-top: #fde053;
+      --body-mid: #f3c11d;
+      --body-bot: #d9a008;
+      --body-edge: #9d6f02;
+      --plate-red: #c92820;
+      --plate-red-dark: #8e1611;
+      --plate-navy: #1d2c4a;
+      --lcd-bg-top: #a6b09a;
+      --lcd-bg-bot: #949e88;
+      --lcd-ink: #1a2116;
+      --btn-yel-top: #fff07a;
+      --btn-yel-mid: #f7cd2e;
+      --btn-yel-bot: #d09b09;
+      --btn-org-top: #ff8c38;
+      --btn-org-mid: #ee6317;
+      --btn-org-bot: #b84004;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      touch-action: manipulation;
+      background:
+        radial-gradient(ellipse at 50% 35%, rgba(255, 224, 150, 0.14) 0%, rgba(20, 14, 8, 0.55) 72%, rgba(10, 7, 4, 0.85) 100%),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 210, 150, 0.025) 0px,
+          rgba(255, 210, 150, 0.025) 2px,
+          transparent 2px,
+          transparent 14px
+        ),
+        linear-gradient(160deg, #4b3523 0%, #332216 48%, #21160e 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Main Yellow Handheld Body */
+    .device {
+      position: relative;
+      width: min(calc(100vw - 10px), 440px);
+      height: min(calc(100dvh - 10px), 800px);
+      display: flex;
+      flex-direction: column;
+      border-radius: 34px 34px 28px 28px;
+      padding: clamp(8px, 1.5dvh, 14px) clamp(10px, 2.8vw, 16px) clamp(10px, 1.8dvh, 18px);
+      background:
+        radial-gradient(120% 80% at 30% 0%, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 55%),
+        linear-gradient(175deg, var(--body-top) 0%, var(--body-mid) 52%, var(--body-bot) 100%);
+      box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.58),
+        0 6px 0 var(--body-edge),
+        inset 0 3px 4px rgba(255, 255, 255, 0.72),
+        inset 0 -5px 8px rgba(133, 90, 0, 0.45),
+        inset 3px 0 5px rgba(255, 255, 255, 0.35),
+        inset -3px 0 5px rgba(145, 100, 0, 0.3);
+      overflow: hidden;
+    }
+
+    /* Subtle plastic grain overlay */
+    .device::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.045;
+      background-image: radial-gradient(#000 0.75px, transparent 0.75px);
+      background-size: 4px 4px;
+      border-radius: inherit;
+    }
+
+    /* Top Handle + Utility Controls */
+    .top-bar {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: clamp(6px, 1.2dvh, 12px);
+      flex-shrink: 0;
+      z-index: 2;
+    }
+
+    .brand-mini {
+      font-size: clamp(9px, 2.2vw, 11px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #8a5e00;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+      padding-left: 4px;
+      white-space: nowrap;
+    }
+
+    /* Integrated Molded Plastic Carry Handle */
+    .handle-cutout {
+      width: clamp(112px, 34vw, 152px);
+      height: clamp(24px, 3.6dvh, 32px);
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, #1b1814 0%, #2a251f 100%);
+      box-shadow:
+        inset 0 4px 7px rgba(0, 0, 0, 0.75),
+        inset 0 -2px 3px rgba(255, 255, 255, 0.12),
+        0 2px 0 rgba(255, 255, 255, 0.65),
+        0 -2px 2px rgba(148, 102, 0, 0.5);
+      border: 2px solid #c99208;
+    }
+
+    .util-controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .util-btn {
+      appearance: none;
+      border: 1.5px solid #9e6f03;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #fff4a6 0%, #ecc026 100%);
+      color: #4f3400;
+      font-size: clamp(10px, 2.4vw, 11px);
+      font-weight: 800;
+      height: clamp(24px, 3.4dvh, 28px);
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      box-shadow:
+        0 2px 0 #8d6100,
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+      transition: transform 0.06s ease, box-shadow 0.06s ease;
+    }
+
+    .util-btn:active,
+    .util-btn.pressed {
+      transform: translateY(2px);
+      box-shadow: 0 0 0 #8d6100;
+    }
+
+    .util-btn.modern-active {
+      background: linear-gradient(180deg, #d7f2ff 0%, #7ec8f2 100%);
+      border-color: #20628a;
+      color: #0e344d;
+      box-shadow: 0 2px 0 #1b5274, inset 0 1px 1px rgba(255,255,255,0.85);
+    }
+
+    .util-btn.muted {
+      background: linear-gradient(180deg, #e5d8b2 0%, #bfa97a 100%);
+      color: #6a5330;
+    }
+
+    .util-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    /* Vintage Faceplate around LCD (80s Circus / Pierrot Printed Graphic) */
+    .faceplate {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 18px;
+      padding: clamp(7px, 1.3dvh, 12px) clamp(8px, 2.2vw, 12px) clamp(8px, 1.4dvh, 12px);
+      background:
+        /* Retro circus bunting stripes at top */
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 232, 130, 0.14) 0px,
+          rgba(255, 232, 130, 0.14) 14px,
+          transparent 14px,
+          transparent 28px
+        ) top / 100% 18px no-repeat,
+        /* Subtle sunburst rays from behind LCD */
+        repeating-conic-gradient(
+          from -10deg at 50% 52%,
+          rgba(255, 220, 120, 0.06) 0deg 12deg,
+          transparent 12deg 24deg
+        ),
+        linear-gradient(180deg, #dc3328 0%, var(--plate-red) 55%, var(--plate-red-dark) 100%);
+      border: 2.5px solid #79120d;
+      box-shadow:
+        inset 0 2px 3px rgba(255, 195, 180, 0.45),
+        inset 0 -3px 6px rgba(60, 0, 0, 0.45),
+        0 2px 0 rgba(255, 255, 255, 0.55);
+      margin-bottom: clamp(8px, 1.5dvh, 14px);
+      overflow: hidden;
+    }
+
+    /* Logo + Retro Pierrot Banner */
+    .plate-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: clamp(4px, 0.9dvh, 8px);
+      flex-shrink: 0;
+    }
+
+    .logo-block {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      flex-wrap: nowrap;
+    }
+
+    .logo-new {
+      display: inline-block;
+      background: #ffe44d;
+      color: #a81711;
+      font-size: clamp(9px, 2.3vw, 11px);
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.06em;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+      transform: skewX(-8deg);
+    }
+
+    .logo-title {
+      font-size: clamp(18px, 5vw, 24px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #fff8d6;
+      text-shadow:
+        0 2px 0 #660d09,
+        0 3px 6px rgba(0, 0, 0, 0.35);
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: clamp(8px, 2vw, 10px);
+      font-weight: 700;
+      color: #ffd573;
+      letter-spacing: 0.06em;
+      opacity: 0.92;
+      white-space: nowrap;
+    }
+
+    .bezel-pierrot {
+      width: clamp(42px, 12vw, 56px);
+      height: clamp(32px, 5.2dvh, 42px);
+      flex-shrink: 0;
+      filter: drop-shadow(0 1.5px 1px rgba(0, 0, 0, 0.35));
+    }
+
+    /* Recessed LCD Housing */
+    .lcd-bezel {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      border-radius: 12px;
+      padding: clamp(6px, 1.1dvh, 10px);
+      background: linear-gradient(180deg, #272b24 0%, #373c33 100%);
+      box-shadow:
+        inset 0 4px 8px rgba(0, 0, 0, 0.7),
+        0 1.5px 0 rgba(255, 220, 200, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lcd-screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 50% 45%, #aeb8a2 0%, var(--lcd-bg-top) 55%, var(--lcd-bg-bot) 100%);
+      box-shadow:
+        inset 0 3px 7px rgba(25, 32, 20, 0.45),
+        inset 0 0 18px rgba(32, 42, 26, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Subtle plastic lens reflection */
+    .lcd-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        128deg,
+        rgba(255, 255, 255, 0.22) 0%,
+        rgba(255, 255, 255, 0.06) 24%,
+        rgba(255, 255, 255, 0) 42%
+      );
+    }
+
+    .lcd-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Authentic LCD Segment Ghosting & Active Ink */
+    .seg {
+      fill: var(--lcd-ink);
+      opacity: 0.085;
+      transition: opacity 0.03s linear;
+    }
+
+    .seg-stroke {
+      stroke: var(--lcd-ink);
+      fill: none;
+      opacity: 0.085;
+      transition: opacity 0.03s linear;
+    }
+
+    .seg.on,
+    .seg-stroke.on {
+      opacity: 0.93;
+      filter: drop-shadow(0.6px 0.9px 0 rgba(20, 26, 16, 0.18));
+    }
+
+    .lcd-off .seg,
+    .lcd-off .seg-stroke {
+      opacity: 0.065;
+      filter: none;
+    }
+
+    .plate-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: clamp(4px, 0.7dvh, 7px);
+      font-size: clamp(8.5px, 2.1vw, 10px);
+      font-weight: 700;
+      color: #ffe8ad;
+      letter-spacing: 0.03em;
+      flex-shrink: 0;
+    }
+
+    /* Speaker grille holes decoration */
+    .speaker-grille {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .speaker-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #4e0a07;
+      box-shadow: 0 1px 0 rgba(255, 190, 170, 0.35);
+    }
+
+    /* 3-Row Tactile Hardware Keypad */
+    .keypad {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(7px, 1.3dvh, 12px);
+      flex-shrink: 0;
+      z-index: 2;
+    }
+
+    .key-row {
+      display: grid;
+      gap: clamp(4px, 1.4vw, 8px);
+    }
+
+    .row-1 {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .row-2 {
+      grid-template-columns: 1.35fr 1fr 1fr 1fr 1fr 1fr;
+    }
+
+    .row-3 {
+      grid-template-columns: repeat(10, 1fr);
+      gap: clamp(2.5px, 0.9vw, 5px);
+    }
+
+    .hw-btn {
+      position: relative;
+      appearance: none;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 1px;
+      font-family: inherit;
+      font-weight: 900;
+      line-height: 1.1;
+      transition: transform 0.055s ease, box-shadow 0.055s ease, filter 0.055s ease;
+      touch-action: manipulation;
+    }
+
+    /* Row 1: Yellow Mode Keys */
+    .btn-yellow {
+      height: clamp(40px, 6.2dvh, 52px);
+      font-size: clamp(10.5px, 2.7vw, 13px);
+      color: #4b2d00;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+      background: linear-gradient(180deg, var(--btn-yel-top) 0%, var(--btn-yel-mid) 65%, var(--btn-yel-bot) 100%);
+      border: 1.5px solid #9f7002;
+      box-shadow:
+        0 4px 0 #8a6000,
+        0 6px 8px rgba(70, 45, 0, 0.35),
+        inset 0 2px 2px rgba(255, 255, 255, 0.85);
+    }
+
+    .btn-yellow:active,
+    .btn-yellow.pressed {
+      transform: translateY(3px);
+      box-shadow:
+        0 1px 0 #8a6000,
+        0 2px 3px rgba(70, 45, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.5);
+      filter: brightness(0.97);
+    }
+
+    .btn-yellow.active-mode {
+      box-shadow:
+        0 4px 0 #8a6000,
+        0 0 0 2px #fff9c4,
+        inset 0 2px 2px rgba(255, 255, 255, 0.9);
+    }
+
+    /* Row 2: Orange Action & Power Keys */
+    .btn-orange {
+      height: clamp(42px, 6.5dvh, 54px);
+      font-size: clamp(12px, 3.2vw, 16px);
+      color: #fffaf0;
+      text-shadow: 0 1.5px 0 rgba(120, 35, 0, 0.65);
+      background: linear-gradient(180deg, var(--btn-org-top) 0%, var(--btn-org-mid) 62%, var(--btn-org-bot) 100%);
+      border: 1.5px solid #8c2e02;
+      box-shadow:
+        0 4px 0 #7b2700,
+        0 6px 8px rgba(70, 30, 0, 0.35),
+        inset 0 2px 2px rgba(255, 210, 170, 0.65);
+    }
+
+    .btn-orange:active,
+    .btn-orange.pressed {
+      transform: translateY(3px);
+      box-shadow:
+        0 1px 0 #7b2700,
+        0 2px 3px rgba(70, 30, 0, 0.25),
+        inset 0 1px 2px rgba(255, 210, 170, 0.4);
+      filter: brightness(0.95);
+    }
+
+    .btn-orange .sub-lbl {
+      font-size: clamp(8px, 1.9vw, 9.5px);
+      font-weight: 700;
+      opacity: 0.9;
+      margin-top: 1px;
+    }
+
+    /* Row 3: 10 Orange Number Keys in 1 Horizontal Row */
+    .btn-digit {
+      height: clamp(44px, 7.2dvh, 58px);
+      border-radius: 8px;
+      font-size: clamp(14px, 4vw, 19px);
+      color: #fffaf0;
+      text-shadow: 0 1.5px 0 rgba(120, 35, 0, 0.65);
+      background: linear-gradient(180deg, var(--btn-org-top) 0%, var(--btn-org-mid) 62%, var(--btn-org-bot) 100%);
+      border: 1.5px solid #8c2e02;
+      box-shadow:
+        0 4px 0 #7b2700,
+        0 5px 6px rgba(70, 30, 0, 0.32),
+        inset 0 2px 2px rgba(255, 210, 170, 0.65);
+    }
+
+    .btn-digit:active,
+    .btn-digit.pressed {
+      transform: translateY(3px);
+      box-shadow:
+        0 1px 0 #7b2700,
+        inset 0 1px 2px rgba(255, 210, 170, 0.4);
+      filter: brightness(0.95);
+    }
+
+    /* Tiny keyboard shortcut hint bar (desktop only) */
+    .kbd-hint {
+      margin-top: clamp(4px, 0.8dvh, 8px);
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #7c5400;
+      opacity: 0.82;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .kbd-hint {
+        display: none;
+      }
+    }
+
+    @media (max-height: 620px) {
+      .kbd-hint {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="device" aria-label="NEW 산수천재 레트로 전자게임기">
+    <!-- Top Handle & Sound Controls -->
+    <header class="top-bar">
+      <div class="brand-mini">ROBOCOM</div>
+      <div class="handle-cutout" aria-hidden="true"></div>
+      <div class="util-controls">
+        <button id="btn-sound-style" class="util-btn" type="button" title="사운드 모드 전환 (T)" aria-label="사운드 스타일 전환">
+          <span id="sound-style-label">레트로</span>
+        </button>
+        <button id="btn-mute" class="util-btn" type="button" title="음소거 토글 (M)" aria-label="음소거 전환">
+          <svg id="icon-sound-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          <svg id="icon-sound-off" viewBox="0 0 24 24" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Red Vintage Faceplate + Monochrome Segment LCD -->
+    <section class="faceplate">
+      <div class="plate-header">
+        <!-- Left Decorative Smiling Pierrot SVG -->
+        <svg class="bezel-pierrot" viewBox="0 0 90 66" aria-hidden="true">
+          <!-- Juggling balls -->
+          <circle cx="14" cy="14" r="5" fill="#ffe14d" stroke="#5a1400" stroke-width="1.5"/>
+          <circle cx="76" cy="14" r="5" fill="#4cc9f0" stroke="#10354a" stroke-width="1.5"/>
+          <!-- Arms spread wide -->
+          <path d="M28 45 Q16 36 12 24" fill="none" stroke="#fff4e0" stroke-width="6" stroke-linecap="round"/>
+          <path d="M62 45 Q74 36 78 24" fill="none" stroke="#fff4e0" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="12" cy="23" r="4.5" fill="#ffd6a5" stroke="#5a1400" stroke-width="1.2"/>
+          <circle cx="78" cy="23" r="4.5" fill="#ffd6a5" stroke="#5a1400" stroke-width="1.2"/>
+          <!-- Body -->
+          <path d="M32 42 L58 42 L63 63 L27 63 Z" fill="#2d6cdf" stroke="#112a5c" stroke-width="1.5"/>
+          <circle cx="45" cy="50" r="2.5" fill="#ffe14d"/>
+          <circle cx="45" cy="58" r="2.5" fill="#ffe14d"/>
+          <!-- Ruffled collar -->
+          <path d="M29 41 Q37 48 45 41 Q53 48 61 41" fill="#fff" stroke="#702010" stroke-width="1.3"/>
+          <!-- Head -->
+          <circle cx="45" cy="29" r="13" fill="#fff5e4" stroke="#5a1400" stroke-width="1.5"/>
+          <!-- Rosy cheeks & red nose -->
+          <circle cx="37.5" cy="31" r="2.3" fill="#ff8fa3"/>
+          <circle cx="52.5" cy="31" r="2.3" fill="#ff8fa3"/>
+          <circle cx="45" cy="29.5" r="2.6" fill="#e63946"/>
+          <!-- Smiling eyes & mouth -->
+          <circle cx="40.5" cy="25.5" r="1.5" fill="#1b1b1b"/>
+          <circle cx="49.5" cy="25.5" r="1.5" fill="#1b1b1b"/>
+          <path d="M39 34 Q45 39 51 34" fill="none" stroke="#b51717" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- Conical clown hat -->
+          <polygon points="33,19 45,3 57,19" fill="#ffe14d" stroke="#5a1400" stroke-width="1.5"/>
+          <circle cx="45" cy="3.5" r="3" fill="#ff595e"/>
+        </svg>
+
+        <div class="logo-block">
+          <span class="logo-new">NEW</span>
+          <span class="logo-title">산수천재</span>
+        </div>
+
+        <div class="logo-sub">ELECTRONIC<br/>GAME·MATH</div>
+      </div>
+
+      <div class="lcd-bezel">
+        <div id="lcd-screen" class="lcd-screen lcd-off" role="status" aria-live="polite">
+          <!-- Authentic Monochrome Segment LCD SVG -->
+          <svg id="lcd-svg" class="lcd-svg" viewBox="0 0 360 162" preserveAspectRatio="xMidYMid meet">
+            <!-- ===== SILK-SCREENED CIRCUS STAGE BACKDROP (Printed behind liquid crystal) ===== -->
+            <g class="lcd-backdrop" aria-hidden="true" opacity="0.22" fill="none" stroke="#36422e">
+              <!-- Circus tent roof arch over Pierrot stage -->
+              <path d="M10 38 Q46 24 82 32 Q118 24 154 38" stroke-width="1.3" stroke-dasharray="2,2"/>
+              <!-- Hanging circus curtains on left & right edges -->
+              <path d="M10 24 Q20 55 12 95 Q18 125 10 150" stroke-width="1.4"/>
+              <path d="M154 24 Q144 55 152 95 Q146 125 154 150" stroke-width="1.4"/>
+              <!-- Faint vertical ball guide tracks -->
+              <line x1="32" y1="28" x2="32" y2="146" stroke-width="1" stroke-dasharray="2,4"/>
+              <line x1="132" y1="28" x2="132" y2="146" stroke-width="1" stroke-dasharray="2,4"/>
+              <!-- Circus stage podium dots -->
+              <line x1="14" y1="155" x2="148" y2="155" stroke-width="1.2" stroke-dasharray="6,4"/>
+              <!-- Subtle numeric panel frame -->
+              <rect x="163" y="27" width="189" height="51" rx="4" stroke-width="0.9"/>
+              <rect x="163" y="83" width="189" height="71" rx="4" stroke-width="0.9"/>
+            </g>
+
+            <!-- ===== TOP STATUS BAR SEGMENTS ===== -->
+            <g font-family="'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif" font-weight="900" font-size="9.5">
+              <text id="seg-mode-game" class="seg" x="12" y="15">게임</text>
+              <text id="seg-mode-add"  class="seg" x="42" y="15">덧셈</text>
+              <text id="seg-mode-sub"  class="seg" x="72" y="15">뺄셈</text>
+              <text id="seg-mode-calc" class="seg" x="102" y="15">계산</text>
+              <text id="seg-mode-mul"  class="seg" x="132" y="15">구구단</text>
+            </g>
+
+            <!-- Status badges on top right -->
+            <g font-family="monospace" font-weight="900" font-size="9.5">
+              <text id="seg-lbl-hi" class="seg" x="250" y="15">BEST</text>
+              <text id="seg-lbl-over" class="seg" x="176" y="15">GAME OVER</text>
+            </g>
+            <!-- Mini 3-digit Best Score (rendered via JS 7-seg) -->
+            <g id="lcd-best-digits"></g>
+
+            <!-- Divider line -->
+            <line id="seg-divider-top" class="seg-stroke" x1="8" y1="21" x2="352" y2="21" stroke-width="1.2"/>
+            <line id="seg-divider-mid" class="seg-stroke" x1="158" y1="25" x2="158" y2="154" stroke-width="1.2" stroke-dasharray="3,2"/>
+
+            <!-- ===== LEFT GRAPHIC SEGMENT STAGE (PIERROT & FALLING BALLS) ===== -->
+            <g id="lcd-stage">
+              <!-- Lane L Balls (steps 0..5) -->
+              <circle id="seg-ball-0-0" class="seg" cx="32" cy="34" r="6.5"/>
+              <circle id="seg-ball-0-1" class="seg" cx="32" cy="53" r="6.5"/>
+              <circle id="seg-ball-0-2" class="seg" cx="32" cy="72" r="6.5"/>
+              <circle id="seg-ball-0-3" class="seg" cx="32" cy="91" r="6.5"/>
+              <!-- Step 4 = Catch Zone (Hand Level) -->
+              <circle id="seg-ball-0-4" class="seg" cx="32" cy="112" r="7.2"/>
+              <!-- Step 5 = Floor Crash -->
+              <ellipse id="seg-ball-0-5" class="seg" cx="32" cy="144" rx="9" ry="4.5"/>
+
+              <!-- Lane R Balls (steps 0..5) -->
+              <circle id="seg-ball-1-0" class="seg" cx="132" cy="34" r="6.5"/>
+              <circle id="seg-ball-1-1" class="seg" cx="132" cy="53" r="6.5"/>
+              <circle id="seg-ball-1-2" class="seg" cx="132" cy="72" r="6.5"/>
+              <circle id="seg-ball-1-3" class="seg" cx="132" cy="91" r="6.5"/>
+              <!-- Step 4 = Catch Zone (Hand Level) -->
+              <circle id="seg-ball-1-4" class="seg" cx="132" cy="112" r="7.2"/>
+              <!-- Step 5 = Floor Crash -->
+              <ellipse id="seg-ball-1-5" class="seg" cx="132" cy="144" rx="9" ry="4.5"/>
+
+              <!-- Catch Zone Subtle Target Brackets at Step 4 -->
+              <path id="seg-zone-l" class="seg-stroke" d="M21 107 L18 112 L21 117 M43 107 L46 112 L43 117" stroke-width="1.6" stroke-linecap="round"/>
+              <path id="seg-zone-r" class="seg-stroke" d="M121 107 L118 112 L121 117 M143 107 L146 112 L143 117" stroke-width="1.6" stroke-linecap="round"/>
+
+              <!-- Catch Impact Sparks -->
+              <g id="seg-spark-l" class="seg-stroke" stroke-width="2" stroke-linecap="round">
+                <line x1="20" y1="99" x2="25" y2="104"/>
+                <line x1="32" y1="95" x2="32" y2="101"/>
+                <line x1="44" y1="99" x2="39" y2="104"/>
+              </g>
+              <g id="seg-spark-r" class="seg-stroke" stroke-width="2" stroke-linecap="round">
+                <line x1="120" y1="99" x2="125" y2="104"/>
+                <line x1="132" y1="95" x2="132" y2="101"/>
+                <line x1="144" y1="99" x2="139" y2="104"/>
+              </g>
+
+              <!-- PIERROT BODY (Center x=82) -->
+              <g id="seg-pierrot-base">
+                <!-- Hat -->
+                <polygon class="seg pierrot-core" points="82,42 69,66 95,66"/>
+                <circle class="seg pierrot-core" cx="82" cy="39" r="3.5"/>
+                <!-- Head outline -->
+                <circle class="seg-stroke pierrot-core" cx="82" cy="80" r="14" stroke-width="2.6"/>
+                <!-- Pom-pom ears / hair puffs -->
+                <circle class="seg pierrot-core" cx="65" cy="79" r="3.5"/>
+                <circle class="seg pierrot-core" cx="99" cy="79" r="3.5"/>
+                <!-- Collar -->
+                <polygon class="seg pierrot-core" points="68,96 82,102 96,96 92,105 82,101 72,105"/>
+                <!-- Torso -->
+                <polygon class="seg pierrot-core" points="72,105 92,105 98,136 66,136"/>
+                <!-- Shoes -->
+                <ellipse class="seg pierrot-core" cx="72" cy="144" rx="8" ry="4"/>
+                <ellipse class="seg pierrot-core" cx="92" cy="144" rx="8" ry="4"/>
+              </g>
+
+              <!-- Pierrot Face: Idle / Normal Smile -->
+              <g id="seg-face-idle">
+                <circle class="seg" cx="77" cy="77" r="1.9"/>
+                <circle class="seg" cx="87" cy="77" r="1.9"/>
+                <circle class="seg" cx="82" cy="81" r="2.1"/>
+                <path class="seg-stroke" d="M76 86 Q82 91 88 86" stroke-width="2" stroke-linecap="round"/>
+              </g>
+
+              <!-- Pierrot Face: Happy / Quiz Correct -->
+              <g id="seg-face-happy">
+                <path class="seg-stroke" d="M74 78 Q77 74 80 78 M84 78 Q87 74 90 78" stroke-width="2" stroke-linecap="round"/>
+                <path class="seg-stroke" d="M75 85 Q82 93 89 85" stroke-width="2.2" stroke-linecap="round"/>
+                <!-- Celebration stars -->
+                <polygon class="seg" points="58,52 60,57 65,57 61,60 62,65 58,62 54,65 55,60 51,57 56,57"/>
+                <polygon class="seg" points="106,52 108,57 113,57 109,60 110,65 106,62 102,65 103,60 99,57 104,57"/>
+              </g>
+
+              <!-- Pierrot Face: Miss / Wrong / Game Over -->
+              <g id="seg-face-miss">
+                <path class="seg-stroke" d="M75 75 L79 79 M79 75 L75 79 M85 75 L89 79 M89 75 L85 79" stroke-width="1.9" stroke-linecap="round"/>
+                <path class="seg-stroke" d="M77 89 Q82 84 87 89" stroke-width="2" stroke-linecap="round"/>
+                <!-- Sweat drop -->
+                <path class="seg" d="M101 66 Q105 72 101 74 Q97 72 101 66 Z"/>
+              </g>
+
+              <!-- Pierrot Arms: Idle Ready -->
+              <g id="seg-arms-idle">
+                <path class="seg-stroke" d="M70 112 L50 118" stroke-width="5.5" stroke-linecap="round"/>
+                <path class="seg-stroke" d="M94 112 L114 118" stroke-width="5.5" stroke-linecap="round"/>
+              </g>
+
+              <!-- Pierrot Arm: Catch Left (reaches step 4 L!) -->
+              <g id="seg-arm-catch-l">
+                <path class="seg-stroke" d="M70 110 L42 112" stroke-width="6" stroke-linecap="round"/>
+                <circle class="seg" cx="40" cy="112" r="4"/>
+              </g>
+
+              <!-- Pierrot Arm: Catch Right (reaches step 4 R!) -->
+              <g id="seg-arm-catch-r">
+                <path class="seg-stroke" d="M94 110 L122 112" stroke-width="6" stroke-linecap="round"/>
+                <circle class="seg" cx="124" cy="112" r="4"/>
+              </g>
+
+              <!-- Pierrot Arms: Happy Raised -->
+              <g id="seg-arms-happy">
+                <path class="seg-stroke" d="M70 109 L52 88" stroke-width="5.5" stroke-linecap="round"/>
+                <path class="seg-stroke" d="M94 109 L112 88" stroke-width="5.5" stroke-linecap="round"/>
+              </g>
+
+              <!-- Floor Line -->
+              <line id="seg-floor" class="seg-stroke" x1="12" y1="151" x2="150" y2="151" stroke-width="2.2" stroke-linecap="round"/>
+            </g>
+
+            <!-- ===== RIGHT 7-SEGMENT NUMERIC & MATH SYMBOL AREA ===== -->
+            <g id="lcd-numeric">
+              <!-- Upper Equation Row (Quiz operands + symbols) -->
+              <g id="lcd-eq-digits"></g>
+
+              <!-- Math Operator Segments (+, -, ×, =) -->
+              <g id="seg-op-plus">
+                <rect class="seg" x="220" y="49" width="14" height="3.2" rx="1"/>
+                <rect class="seg" x="225.4" y="43.6" width="3.2" height="14" rx="1"/>
+              </g>
+              <g id="seg-op-minus">
+                <rect class="seg" x="220" y="62" width="14" height="3.2" rx="1"/>
+              </g>
+              <g id="seg-op-mul">
+                <path class="seg-stroke" d="M222 45 L232 55 M232 45 L222 55" stroke-width="3.2" stroke-linecap="round"/>
+              </g>
+              <g id="seg-op-eq">
+                <rect class="seg" x="298" y="47" width="14" height="3" rx="1"/>
+                <rect class="seg" x="298" y="54" width="14" height="3" rx="1"/>
+              </g>
+
+              <!-- Quiz Correct / Wrong Marks -->
+              <circle id="seg-mark-ok" class="seg-stroke" cx="334" cy="52" r="10" stroke-width="3.2"/>
+              <path id="seg-mark-ng" class="seg-stroke" d="M325 43 L343 61 M343 43 L325 61" stroke-width="3.2" stroke-linecap="round"/>
+
+              <!-- Lower Main 6-Digit 7-Segment Display (Score / Answer / Calc) -->
+              <rect id="seg-main-minus" class="seg" x="166" y="114" width="12" height="4" rx="1.2"/>
+              <g id="lcd-main-digits"></g>
+
+              <!-- Subtle Label under main digits -->
+              <g font-family="monospace" font-weight="900" font-size="9">
+                <text id="seg-lbl-score" class="seg" x="168" y="92">SCORE</text>
+                <text id="seg-lbl-ans"   class="seg" x="210" y="92">ANS</text>
+                <text id="seg-lbl-lv"    class="seg" x="242" y="92">2-BALL</text>
+                <text id="seg-lbl-try"   class="seg" x="292" y="92">RETRY</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="plate-footer">
+        <span>공받기·덧셈·뺄셈·구구단·계산기</span>
+        <div class="speaker-grille" aria-hidden="true">
+          <span class="speaker-dot"></span>
+          <span class="speaker-dot"></span>
+          <span class="speaker-dot"></span>
+          <span class="speaker-dot"></span>
+          <span class="speaker-dot"></span>
+          <span class="speaker-dot"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3-Row Physical Button Matrix -->
+    <section class="keypad" aria-label="조작 버튼">
+      <!-- Row 1: 5 Yellow Mode Keys -->
+      <div class="key-row row-1">
+        <button class="hw-btn btn-yellow" type="button" data-action="game">게임 키</button>
+        <button class="hw-btn btn-yellow" type="button" data-action="add">덧셈(+)</button>
+        <button class="hw-btn btn-yellow" type="button" data-action="sub">뺄셈(-)</button>
+        <button class="hw-btn btn-yellow" type="button" data-action="calc">계산기</button>
+        <button class="hw-btn btn-yellow" type="button" data-action="mul">구구단(×)</button>
+      </div>
+
+      <!-- Row 2: 6 Orange Action / Operator / Power Keys -->
+      <div class="key-row row-2">
+        <button class="hw-btn btn-orange" type="button" data-action="catch">
+          <span>공받기</span>
+        </button>
+        <button class="hw-btn btn-orange" type="button" data-action="op-plus">+</button>
+        <button class="hw-btn btn-orange" type="button" data-action="op-minus">−</button>
+        <button class="hw-btn btn-orange" type="button" data-action="equals">=</button>
+        <button class="hw-btn btn-orange" type="button" data-action="on">ON</button>
+        <button class="hw-btn btn-orange" type="button" data-action="off">OFF</button>
+      </div>
+
+      <!-- Row 3: 10 Orange Number Keys (1 2 3 4 5 6 7 8 9 0) -->
+      <div class="key-row row-3">
+        <button class="hw-btn btn-digit" type="button" data-digit="1">1</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="2">2</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="3">3</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="4">4</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="5">5</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="6">6</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="7">7</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="8">8</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="9">9</button>
+        <button class="hw-btn btn-digit" type="button" data-digit="0">0</button>
+      </div>
+    </section>
+
+    <div class="kbd-hint">키보드: Space 공받기 · 0-9 숫자 · + - Enter(=) · G/A/S/C/X 모드 · P 전원 · T 사운드 · M 음소거</div>
+  </main>
+
+  <script src="engine.js"></script>
+  <script src="sound.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const SVG_NS = "http://www.w3.org/2000/svg";
+
+      // 7-segment bitmask: [a, b, c, d, e, f, g]
+      const SEG_MAP = {
+        "0": [1, 1, 1, 1, 1, 1, 0],
+        "1": [0, 1, 1, 0, 0, 0, 0],
+        "2": [1, 1, 0, 1, 1, 0, 1],
+        "3": [1, 1, 1, 1, 0, 0, 1],
+        "4": [0, 1, 1, 0, 0, 1, 1],
+        "5": [1, 0, 1, 1, 0, 1, 1],
+        "6": [1, 0, 1, 1, 1, 1, 1],
+        "7": [1, 1, 1, 0, 0, 0, 0],
+        "8": [1, 1, 1, 1, 1, 1, 1],
+        "9": [1, 1, 1, 1, 0, 1, 1],
+        "-": [0, 0, 0, 0, 0, 0, 1],
+        "E": [1, 0, 0, 1, 1, 1, 1],
+        "r": [0, 0, 0, 0, 1, 0, 1],
+        " ": [0, 0, 0, 0, 0, 0, 0]
+      };
+
+      // Build crisp hexagonal beveled 7-segment SVG digit
+      function createSevenSegDigit(x, y, w, h) {
+        const g = document.createElementNS(SVG_NS, "g");
+        g.setAttribute("transform", `translate(${x}, ${y})`);
+
+        const t = Math.max(2, w * 0.19); // segment thickness
+        const pad = t * 0.35;
+        const mid = h / 2;
+
+        // Polygons for a, b, c, d, e, f, g
+        const paths = [
+          // a (top)
+          `${t},${0} ${w - t},${0} ${w - t * 0.65},${t * 0.5} ${w - t},${t} ${t},${t} ${t * 0.65},${t * 0.5}`,
+          // b (top-right)
+          `${w},${t * 0.8} ${w},${mid - pad} ${w - t * 0.5},${mid} ${w - t},${mid - pad} ${w - t},${t + pad} ${w - t * 0.5},${t * 0.55}`,
+          // c (bottom-right)
+          `${w},${mid + pad} ${w},${h - t * 0.8} ${w - t * 0.5},${h - t * 0.55} ${w - t},${h - t - pad} ${w - t},${mid + pad} ${w - t * 0.5},${mid}`,
+          // d (bottom)
+          `${t},${h - t} ${w - t},${h - t} ${w - t * 0.65},${h - t * 0.5} ${w - t},${h} ${t},${h} ${t * 0.65},${h - t * 0.5}`,
+          // e (bottom-left)
+          `${0},${mid + pad} ${t * 0.5},${mid} ${t},${mid + pad} ${t},${h - t - pad} ${t * 0.5},${h - t * 0.55} ${0},${h - t * 0.8}`,
+          // f (top-left)
+          `${0},${t * 0.8} ${t * 0.5},${t * 0.55} ${t},${t + pad} ${t},${mid - pad} ${t * 0.5},${mid} ${0},${mid - pad}`,
+          // g (middle)
+          `${t},${mid - t / 2} ${w - t},${mid - t / 2} ${w - t * 0.55},${mid} ${w - t},${mid + t / 2} ${t},${mid + t / 2} ${t * 0.55},${mid}`
+        ];
+
+        const segEls = paths.map((pts) => {
+          const poly = document.createElementNS(SVG_NS, "polygon");
+          poly.setAttribute("points", pts);
+          poly.setAttribute("class", "seg");
+          g.appendChild(poly);
+          return poly;
+        });
+
+        return { group: g, segs: segEls };
+      }
+
+      // Mount all 7-segment digit groups into SVG
+      const bestDigits = [];
+      const bestContainer = document.getElementById("lcd-best-digits");
+      for (let i = 0; i < 3; i++) {
+        const d = createSevenSegDigit(286 + i * 16, 4, 11, 13);
+        bestContainer.appendChild(d.group);
+        bestDigits.push(d);
+      }
+
+      // Equation row digits: A0, A1 (left of op), B0, B1 (right of op)
+      const eqDigitsA = [];
+      const eqDigitsB = [];
+      const eqContainer = document.getElementById("lcd-eq-digits");
+      for (let i = 0; i < 2; i++) {
+        const dA = createSevenSegDigit(170 + i * 23, 35, 17, 32);
+        eqContainer.appendChild(dA.group);
+        eqDigitsA.push(dA);
+      }
+      for (let i = 0; i < 2; i++) {
+        const dB = createSevenSegDigit(246 + i * 23, 35, 17, 32);
+        eqContainer.appendChild(dB.group);
+        eqDigitsB.push(dB);
+      }
+
+      // Main 6-digit display (Score / Quiz Answer / Calculator)
+      const mainDigits = [];
+      const mainContainer = document.getElementById("lcd-main-digits");
+      for (let i = 0; i < 6; i++) {
+        const d = createSevenSegDigit(184 + i * 27, 98, 21, 44);
+        mainContainer.appendChild(d.group);
+        mainDigits.push(d);
+      }
+
+      function setDigitGroup(digits, text, rightAlign = true) {
+        const str = String(text);
+        const len = digits.length;
+        const padded = rightAlign
+          ? str.slice(-len).padStart(len, " ")
+          : str.slice(0, len).padEnd(len, " ");
+
+        for (let i = 0; i < len; i++) {
+          const ch = padded[i];
+          const mask = SEG_MAP[ch] || SEG_MAP[" "];
+          for (let s = 0; s < 7; s++) {
+            digits[i].segs[s].classList.toggle("on", mask[s] === 1);
+          }
+        }
+      }
+
+      function setSeg(id, on) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.classList.contains("seg") || el.classList.contains("seg-stroke")) {
+          el.classList.toggle("on", Boolean(on));
+        } else {
+          el.querySelectorAll(".seg, .seg-stroke").forEach((child) => {
+            child.classList.toggle("on", Boolean(on));
+          });
+        }
+      }
+
+      // Initialize Engine & Sound
+      const engine = window.SansuEngine.createSansuEngine();
+      const sound = window.SansuSound.createSoundEngine();
+
+      // Timers
+      let bootTimer = null;
+      let gameTimer = null;
+      let quizAutoTimer = null;
+      let quizNextTimer = null;
+
+      function clearAllTimers() {
+        if (bootTimer) { clearTimeout(bootTimer); bootTimer = null; }
+        if (gameTimer) { clearTimeout(gameTimer); gameTimer = null; }
+        if (quizAutoTimer) { clearTimeout(quizAutoTimer); quizAutoTimer = null; }
+        if (quizNextTimer) { clearTimeout(quizNextTimer); quizNextTimer = null; }
+      }
+
+      function scheduleNextGameTick() {
+        if (gameTimer) clearTimeout(gameTimer);
+        const st = engine.getState();
+        if (st.power !== "on" || st.mode !== "game" || st.game.status !== "playing") return;
+        const interval = engine.getTickInterval(st.game.score);
+        gameTimer = setTimeout(() => {
+          const res = engine.tickGame();
+          if (res.sound) sound.play(res.sound);
+          render();
+          if (res.active) scheduleNextGameTick();
+        }, interval);
+      }
+
+      // Render entire LCD & active button highlights
+      const lcdScreen = document.getElementById("lcd-screen");
+      const allSegs = document.querySelectorAll("#lcd-svg .seg, #lcd-svg .seg-stroke");
+
+      function render() {
+        const st = engine.getState();
+
+        // Active mode highlight on yellow row
+        document.querySelectorAll(".btn-yellow").forEach((btn) => {
+          const act = btn.dataset.action;
+          const isActive =
+            st.power === "on" &&
+            ((act === "game" && st.mode === "game") ||
+             (act === "calc" && st.mode === "calc") ||
+             (st.mode === "quiz" && st.quiz.type === act));
+          btn.classList.toggle("active-mode", isActive);
+        });
+
+        // POWER OFF
+        if (st.power === "off") {
+          lcdScreen.classList.add("lcd-off");
+          allSegs.forEach((el) => el.classList.remove("on"));
+          return;
+        }
+
+        lcdScreen.classList.remove("lcd-off");
+
+        // BOOT TEST (0.5s all segments lit!)
+        if (st.power === "booting") {
+          allSegs.forEach((el) => el.classList.add("on"));
+          return;
+        }
+
+        // Reset all segments first, then turn on active ones
+        allSegs.forEach((el) => el.classList.remove("on"));
+
+        // Dividers & Floor
+        setSeg("seg-divider-top", true);
+        setSeg("seg-divider-mid", true);
+        setSeg("seg-floor", true);
+
+        // Best score always shown when > 0 or in standby/game
+        setSeg("seg-lbl-hi", true);
+        setDigitGroup(bestDigits, String(st.game.bestScore).padStart(3, "0"));
+
+        // Mode indicators
+        setSeg("seg-mode-game", st.mode === "game");
+        setSeg("seg-mode-add", st.mode === "quiz" && st.quiz.type === "add");
+        setSeg("seg-mode-sub", st.mode === "quiz" && st.quiz.type === "sub");
+        setSeg("seg-mode-mul", st.mode === "quiz" && st.quiz.type === "mul");
+        setSeg("seg-mode-calc", st.mode === "calc");
+
+        // Pierrot Core & Pose
+        setSeg("seg-pierrot-base", true);
+        const pose = st.pierrotPose;
+        setSeg("seg-face-idle", pose === "idle" || pose === "catchL" || pose === "catchR" || pose === "catchBoth");
+        setSeg("seg-face-happy", pose === "happy");
+        setSeg("seg-face-miss", pose === "miss");
+
+        if (pose === "happy") {
+          setSeg("seg-arms-happy", true);
+        } else if (pose === "catchL") {
+          setSeg("seg-arm-catch-l", true);
+          setSeg("seg-spark-l", true);
+        } else if (pose === "catchR") {
+          setSeg("seg-arm-catch-r", true);
+          setSeg("seg-spark-r", true);
+        } else if (pose === "catchBoth") {
+          setSeg("seg-arm-catch-l", true);
+          setSeg("seg-arm-catch-r", true);
+          setSeg("seg-spark-l", true);
+          setSeg("seg-spark-r", true);
+        } else {
+          setSeg("seg-arms-idle", true);
+        }
+
+        // Mode-specific LCD rendering
+        if (st.mode === "standby") {
+          setDigitGroup(mainDigits, "0");
+          setSeg("seg-zone-l", true);
+          setSeg("seg-zone-r", true);
+        } else if (st.mode === "game") {
+          setSeg("seg-zone-l", true);
+          setSeg("seg-zone-r", true);
+          setSeg("seg-lbl-score", true);
+          setSeg("seg-lbl-lv", st.game.score >= 10);
+          setSeg("seg-lbl-over", st.game.status === "gameover");
+          setDigitGroup(mainDigits, String(st.game.score));
+
+          // Render falling balls
+          for (const b of st.game.balls) {
+            setSeg(`seg-ball-${b.lane}-${b.step}`, true);
+          }
+        } else if (st.mode === "quiz") {
+          const q = st.quiz;
+          setDigitGroup(eqDigitsA, String(q.a));
+          setDigitGroup(eqDigitsB, String(q.b));
+          setSeg("seg-op-plus", q.op === "+");
+          setSeg("seg-op-minus", q.op === "-");
+          setSeg("seg-op-mul", q.op === "×");
+          setSeg("seg-op-eq", true);
+
+          setSeg("seg-lbl-ans", true);
+          setSeg("seg-mark-ok", q.feedback === "correct");
+          setSeg("seg-mark-ng", q.feedback === "wrong" || q.feedback === "reveal");
+          setSeg("seg-lbl-try", q.feedback === "wrong");
+
+          const displayAns = q.input === "" ? "-" : q.input;
+          setDigitGroup(mainDigits, displayAns);
+        } else if (st.mode === "calc") {
+          const c = st.calc;
+          setSeg("seg-op-plus", c.pendingOp === "+");
+          setSeg("seg-op-minus", c.pendingOp === "-");
+          if (c.accumulator !== null && c.pendingOp) {
+            const accStr = String(Math.abs(c.accumulator));
+            if (accStr.length <= 2) setDigitGroup(eqDigitsA, accStr);
+          }
+          const isNeg = c.display.startsWith("-");
+          setSeg("seg-main-minus", isNeg);
+          setDigitGroup(mainDigits, isNeg ? c.display.slice(1) : c.display);
+        }
+      }
+
+      // Utility controls UI sync
+      const btnStyle = document.getElementById("btn-sound-style");
+      const lblStyle = document.getElementById("sound-style-label");
+      const btnMute = document.getElementById("btn-mute");
+      const iconOn = document.getElementById("icon-sound-on");
+      const iconOff = document.getElementById("icon-sound-off");
+
+      function renderSoundControls() {
+        const isModern = sound.getStyle() === "modern";
+        lblStyle.textContent = isModern ? "모던" : "레트로";
+        btnStyle.classList.toggle("modern-active", isModern);
+
+        const isMuted = sound.isMuted();
+        btnMute.classList.toggle("muted", isMuted);
+        iconOn.style.display = isMuted ? "none" : "block";
+        iconOff.style.display = isMuted ? "block" : "none";
+      }
+
+      // Action dispatcher
+      function handleQuizSubmitResult(res) {
+        if (!res) return;
+        if (res.sound) sound.play(res.sound);
+        render();
+
+        if (res.result === "correct" || res.result === "reveal") {
+          if (quizNextTimer) clearTimeout(quizNextTimer);
+          quizNextTimer = setTimeout(() => {
+            engine.nextQuizQuestion();
+            render();
+          }, res.nextDelayMs);
+        } else if (res.result === "retry") {
+          if (quizNextTimer) clearTimeout(quizNextTimer);
+          quizNextTimer = setTimeout(() => {
+            engine.clearQuizFeedbackForRetry();
+            render();
+          }, res.retryDelayMs);
+        }
+      }
+
+      function handleAction(action) {
+        sound.ensureContext();
+        let res = null;
+
+        switch (action) {
+          case "on":
+            clearAllTimers();
+            res = engine.pressOn();
+            if (res.sound) sound.play(res.sound);
+            render();
+            if (res.startBootTimer) {
+              bootTimer = setTimeout(() => {
+                engine.finishBoot();
+                render();
+              }, 500);
+            }
+            return;
+
+          case "off":
+            clearAllTimers();
+            res = engine.pressOff();
+            if (res.sound) sound.play(res.sound);
+            render();
+            return;
+
+          case "game":
+            clearAllTimers();
+            res = engine.startGame();
+            if (res.sound) sound.play(res.sound);
+            render();
+            if (res.startGameLoop) scheduleNextGameTick();
+            return;
+
+          case "add":
+          case "sub":
+          case "mul":
+            clearAllTimers();
+            res = engine.startQuiz(action);
+            if (res.sound) sound.play(res.sound);
+            render();
+            return;
+
+          case "calc":
+            clearAllTimers();
+            res = engine.startCalc();
+            if (res.sound) sound.play(res.sound);
+            render();
+            return;
+
+          case "catch":
+            res = engine.pressCatch();
+            if (res.sound) sound.play(res.sound);
+            if (res.gameOver && gameTimer) {
+              clearTimeout(gameTimer);
+              gameTimer = null;
+            }
+            render();
+            return;
+
+          case "op-plus":
+            res = engine.pressOperator("+");
+            if (res.sound) sound.play(res.sound);
+            render();
+            return;
+
+          case "op-minus":
+            res = engine.pressOperator("-");
+            if (res.sound) sound.play(res.sound);
+            render();
+            return;
+
+          case "equals":
+            if (quizAutoTimer) { clearTimeout(quizAutoTimer); quizAutoTimer = null; }
+            res = engine.pressEquals();
+            if (engine.getState().mode === "quiz") {
+              handleQuizSubmitResult(res);
+            } else {
+              if (res.sound) sound.play(res.sound);
+              render();
+            }
+            return;
+        }
+      }
+
+      function handleDigit(digit) {
+        sound.ensureContext();
+        if (quizAutoTimer) { clearTimeout(quizAutoTimer); quizAutoTimer = null; }
+        const res = engine.pressDigit(digit);
+        if (res.sound) sound.play(res.sound);
+        render();
+
+        if (res.autoSubmit) {
+          quizAutoTimer = setTimeout(() => {
+            quizAutoTimer = null;
+            handleQuizSubmitResult(engine.submitQuizAnswer());
+          }, 260);
+        }
+      }
+
+      // Bind tactile pointer events (zero-latency on mobile)
+      function flashBtn(el) {
+        if (!el) return;
+        el.classList.add("pressed");
+        setTimeout(() => el.classList.remove("pressed"), 110);
+      }
+
+      document.querySelectorAll(".hw-btn").forEach((btn) => {
+        btn.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
+          if (btn.dataset.action) {
+            handleAction(btn.dataset.action);
+          } else if (btn.dataset.digit !== undefined) {
+            handleDigit(btn.dataset.digit);
+          }
+        });
+      });
+
+      btnStyle.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        sound.ensureContext();
+        sound.toggleStyle();
+        renderSoundControls();
+        sound.play("catch");
+      });
+
+      btnMute.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        sound.ensureContext();
+        const muted = sound.toggleMute();
+        renderSoundControls();
+        if (!muted) sound.play("click");
+      });
+
+      // Desktop Keyboard Shortcuts
+      document.addEventListener("keydown", (e) => {
+        if (e.repeat) return;
+        const key = e.key;
+
+        if (key >= "0" && key <= "9") {
+          e.preventDefault();
+          flashBtn(document.querySelector(`.hw-btn[data-digit="${key}"]`));
+          handleDigit(key);
+          return;
+        }
+
+        if (key === " " || e.code === "Space") {
+          e.preventDefault();
+          flashBtn(document.querySelector('.hw-btn[data-action="catch"]'));
+          handleAction("catch");
+          return;
+        }
+
+        if (key === "+" || (key === "=" && e.shiftKey)) {
+          e.preventDefault();
+          flashBtn(document.querySelector('.hw-btn[data-action="op-plus"]'));
+          handleAction("op-plus");
+          return;
+        }
+
+        if (key === "-") {
+          e.preventDefault();
+          flashBtn(document.querySelector('.hw-btn[data-action="op-minus"]'));
+          handleAction("op-minus");
+          return;
+        }
+
+        if (key === "Enter" || key === "=") {
+          e.preventDefault();
+          flashBtn(document.querySelector('.hw-btn[data-action="equals"]'));
+          handleAction("equals");
+          return;
+        }
+
+        if (key === "Backspace") {
+          e.preventDefault();
+          const res = engine.pressBackspace();
+          if (res.sound) sound.play(res.sound);
+          render();
+          return;
+        }
+
+        const lower = key.toLowerCase();
+        if (lower === "g") {
+          flashBtn(document.querySelector('.hw-btn[data-action="game"]'));
+          handleAction("game");
+        } else if (lower === "a") {
+          flashBtn(document.querySelector('.hw-btn[data-action="add"]'));
+          handleAction("add");
+        } else if (lower === "s") {
+          flashBtn(document.querySelector('.hw-btn[data-action="sub"]'));
+          handleAction("sub");
+        } else if (lower === "c") {
+          flashBtn(document.querySelector('.hw-btn[data-action="calc"]'));
+          handleAction("calc");
+        } else if (lower === "x" || key === "*") {
+          flashBtn(document.querySelector('.hw-btn[data-action="mul"]'));
+          handleAction("mul");
+        } else if (lower === "p") {
+          const st = engine.getState();
+          const act = st.power === "off" ? "on" : "off";
+          flashBtn(document.querySelector(`.hw-btn[data-action="${act}"]`));
+          handleAction(act);
+        } else if (lower === "m") {
+          flashBtn(btnMute);
+          const muted = sound.toggleMute();
+          renderSoundControls();
+          if (!muted) sound.play("click");
+        } else if (lower === "t") {
+          flashBtn(btnStyle);
+          sound.toggleStyle();
+          renderSoundControls();
+          sound.play("catch");
+        }
+      });
+
+      // Expose test hooks for automated verification
+      window.__SANSU__ = { engine, sound, handleAction, handleDigit, render };
+
+      // Boot up automatically on first load (runs authentic 0.5s LCD boot test)
+      renderSoundControls();
+      handleAction("on");
+
+      // Register Service Worker for Offline PWA
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
