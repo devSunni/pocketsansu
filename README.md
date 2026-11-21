@@ -1,6 +1,6 @@
 # NEW 산수천재 (포켓산수 PWA)
 
-**바로 실행하기 (PWA):** https://devsunni.github.io/pokectsansu/
+**바로 실행하기 (PWA):** https://devsunni.github.io/pocketsansu/
 
 1980년대 후반 한국로보콤(ROBOCOM)에서 출시한 레트로 휴대용 전자게임기 **‘NEW 산수천재(노란색 본체 버전)’**를 재현한 오프라인 웹앱(PWA)입니다.
 
@@ -12,7 +12,7 @@
 - **듀얼 사운드 엔진**: Web Audio API 기반 **레트로(80년대 사각파 피에조 부저)** ↔ **모던(부드러운 하이파이 차임)** 실시간 전환(`T`) 및 음소거(`M`)
 
 ## 폰에 설치 방법
-1. 위 주소(https://devsunni.github.io/pokectsansu/)로 접속
+1. 위 주소(https://devsunni.github.io/pocketsansu/)로 접속
 2. **Android Chrome / 삼성 인터넷**: 브라우저 메뉴(⋮) → **홈 화면에 추가 / 앱 설치**
 3. **iPhone Safari**: 공유 버튼 → **홈 화면에 추가**
 4. **PC Chrome / Edge**: 주소창 오른쪽 설치 아이콘 클릭
