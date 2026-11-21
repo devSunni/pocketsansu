@@ -58,7 +58,7 @@ test("HTML DOM integrity: all referenced LCD segment IDs & 3-row hardware button
   const orangeBtns = html.match(/class="hw-btn btn-orange"/g) || [];
   const digitBtns = html.match(/class="hw-btn btn-digit"/g) || [];
   assert.equal(yellowBtns.length, 5, "Row 1 must have 5 yellow buttons");
-  assert.equal(orangeBtns.length, 6, "Row 2 must have 6 orange buttons");
+  assert.equal(orangeBtns.length, 7, "Row 2 must have 7 orange buttons (including backspace)");
   assert.equal(digitBtns.length, 10, "Row 3 must have 10 digit buttons");
 
   // Verify digit order 1 2 3 4 5 6 7 8 9 0
