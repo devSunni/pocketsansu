@@ -161,7 +161,8 @@ test("Quiz Mode: Addition, Subtraction, Multiplication generation, auto-submit, 
   const subRes = eng.submitQuizAnswer();
   assert.equal(subRes.result, "correct");
   assert.equal(subRes.sound, "correct");
-  assert.equal(eng.getState().pierrotPose, "happy");
+  assert.ok(eng.getState().pierrotPose === "quizCatchL" || eng.getState().pierrotPose === "quizCatchR");
+  assert.equal(eng.getState().quiz.ball, null, "Ball should be caught and cleared on correct answer");
   assert.equal(eng.getState().quiz.score, 1);
 
   // Subtraction (non-negative)
@@ -170,12 +171,17 @@ test("Quiz Mode: Addition, Subtraction, Multiplication generation, auto-submit, 
   assert.equal(q.op, "-");
   assert.ok(q.a >= q.b && q.answer >= 0);
 
-  // Multiplication (2..9 x 1..9)
+  // Multiplication (2..9 x 1..9) with falling ball linked to Pierrot
   eng.startQuiz("mul");
   q = eng.getState().quiz;
   assert.equal(q.op, "×");
   assert.ok(q.a >= 2 && q.a <= 9 && q.b >= 1 && q.b <= 9);
   assert.equal(q.answer, q.a * q.b);
+  assert.ok(q.ball && q.ball.step === 0);
+
+  // Ball advances step-by-step while thinking
+  assert.equal(eng.tickQuizBall().active, true);
+  assert.equal(eng.getState().quiz.ball.step, 1);
 
   // Wrong answer 1st attempt -> retry
   const wrongAns = String(q.answer + 1);
@@ -186,11 +192,23 @@ test("Quiz Mode: Addition, Subtraction, Multiplication generation, auto-submit, 
   eng.clearQuizFeedbackForRetry();
   assert.equal(eng.getState().quiz.input, "");
 
-  // Wrong answer 2nd attempt -> reveal correct answer
+  // Wrong answer 2nd attempt -> ball crashes to ground & reveal correct answer
   for (const ch of wrongAns) eng.pressDigit(ch);
   const w2 = eng.pressEquals();
   assert.equal(w2.result, "reveal");
+  assert.equal(eng.getState().quiz.ball.step, GROUND_STEP);
   assert.equal(eng.getState().quiz.input, String(q.answer));
+
+  // Next question timeout: ball falls to GROUND_STEP -> timeout reveals answer
+  eng.nextQuizQuestion();
+  assert.equal(eng.getState().quiz.ball.step, 0);
+  for (let i = 0; i < GROUND_STEP - 1; i++) {
+    assert.equal(eng.tickQuizBall().active, true);
+  }
+  const toRes = eng.tickQuizBall();
+  assert.equal(toRes.result, "timeout");
+  assert.equal(eng.getState().quiz.ball.step, GROUND_STEP);
+  assert.equal(eng.getState().quiz.input, String(eng.getState().quiz.answer));
 });
 
 // ---------- CALCULATOR MODE TESTS ----------

@@ -1,5 +1,5 @@
 // 캐시 버전: index.html 등을 수정하면 버전을 올려 배포하세요.
-const CACHE_NAME = "pocket-sansu-v1";
+const CACHE_NAME = "pocket-sansu-v2";
 const ASSETS = [
   "./",
   "./index.html",

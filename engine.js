@@ -76,7 +76,9 @@
         input: "",
         score: 0,
         attempts: 0,
-        feedback: null // null | 'correct' | 'wrong' | 'reveal'
+        feedback: null, // null | 'correct' | 'wrong' | 'reveal'
+        ball: null,     // { lane: 0|1, step: 0..5 } | null
+        nextLane: 0
       },
 
       // Calculator state
@@ -298,7 +300,13 @@
       state.quiz.input = "";
       state.quiz.attempts = 0;
       state.quiz.feedback = null;
+      state.quiz.ball = { lane: state.quiz.nextLane, step: 0 };
+      state.quiz.nextLane = 1 - state.quiz.nextLane;
       state.pierrotPose = "idle";
+    }
+
+    function getQuizBallInterval(quizScore) {
+      return Math.max(1000, 1650 - Math.min(13, quizScore || 0) * 50);
     }
 
     function startQuiz(type) {
@@ -307,8 +315,28 @@
       state.game.status = "idle";
       state.game.balls = [];
       state.quiz.score = 0;
+      state.quiz.nextLane = randInt(0, 1);
       generateQuestion(type);
-      return { sound: "click", stopTimers: true };
+      return { sound: "click", stopTimers: true, startQuizBall: true };
+    }
+
+    function tickQuizBall() {
+      if (!isInteractive() || state.mode !== "quiz" || state.quiz.feedback !== null || !state.quiz.ball) {
+        return { sound: null, active: false };
+      }
+      const q = state.quiz;
+      q.ball.step += 1;
+      if (q.ball.step >= GROUND_STEP) {
+        q.feedback = "reveal";
+        q.input = String(q.answer);
+        state.pierrotPose = "miss";
+        return { sound: "wrong", active: false, result: "timeout", nextDelayMs: 1400 };
+      }
+      return {
+        sound: q.ball.lane === 0 ? "tickL" : "tickR",
+        active: true,
+        interval: getQuizBallInterval(q.score)
+      };
     }
 
     function nextQuizQuestion() {
@@ -332,14 +360,17 @@
 
       const val = parseInt(q.input, 10);
       if (val === q.answer) {
+        const lane = q.ball ? q.ball.lane : 0;
+        q.ball = null;
         q.feedback = "correct";
         q.score += 1;
-        state.pierrotPose = "happy";
+        state.pierrotPose = lane === 0 ? "quizCatchL" : "quizCatchR";
         return { sound: "correct", result: "correct", nextDelayMs: 1100 };
       } else {
         q.attempts += 1;
         state.pierrotPose = "miss";
         if (q.attempts >= 2) {
+          if (q.ball) q.ball.step = GROUND_STEP;
           q.feedback = "reveal";
           q.input = String(q.answer);
           return { sound: "wrong", result: "reveal", nextDelayMs: 1400 };
@@ -518,6 +549,8 @@
       tickGame,
       pressCatch,
       startQuiz,
+      tickQuizBall,
+      getQuizBallInterval,
       nextQuizQuestion,
       clearQuizFeedbackForRetry,
       submitQuizAnswer,

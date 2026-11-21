@@ -979,12 +979,31 @@
       let gameTimer = null;
       let quizAutoTimer = null;
       let quizNextTimer = null;
+      let quizBallTimer = null;
 
       function clearAllTimers() {
         if (bootTimer) { clearTimeout(bootTimer); bootTimer = null; }
         if (gameTimer) { clearTimeout(gameTimer); gameTimer = null; }
         if (quizAutoTimer) { clearTimeout(quizAutoTimer); quizAutoTimer = null; }
         if (quizNextTimer) { clearTimeout(quizNextTimer); quizNextTimer = null; }
+        if (quizBallTimer) { clearTimeout(quizBallTimer); quizBallTimer = null; }
+      }
+
+      function scheduleNextQuizBallTick() {
+        if (quizBallTimer) clearTimeout(quizBallTimer);
+        const st = engine.getState();
+        if (st.power !== "on" || st.mode !== "quiz" || st.quiz.feedback !== null || !st.quiz.ball) return;
+        const interval = engine.getQuizBallInterval(st.quiz.score);
+        quizBallTimer = setTimeout(() => {
+          const res = engine.tickQuizBall();
+          if (res.result === "timeout") {
+            handleQuizSubmitResult(res);
+          } else {
+            if (res.sound) sound.play(res.sound);
+            render();
+            if (res.active) scheduleNextQuizBallTick();
+          }
+        }, interval);
       }
 
       function scheduleNextGameTick() {
@@ -1056,16 +1075,16 @@
         setSeg("seg-pierrot-base", true);
         const pose = st.pierrotPose;
         setSeg("seg-face-idle", pose === "idle" || pose === "catchL" || pose === "catchR" || pose === "catchBoth");
-        setSeg("seg-face-happy", pose === "happy");
+        setSeg("seg-face-happy", pose === "happy" || pose === "quizCatchL" || pose === "quizCatchR");
         setSeg("seg-face-miss", pose === "miss");
 
         if (pose === "happy") {
           setSeg("seg-arms-happy", true);
-        } else if (pose === "catchL") {
+        } else if (pose === "catchL" || pose === "quizCatchL") {
           setSeg("seg-arm-catch-l", true);
           setSeg("seg-arm-idle-r", true);
           setSeg("seg-spark-l", true);
-        } else if (pose === "catchR") {
+        } else if (pose === "catchR" || pose === "quizCatchR") {
           setSeg("seg-arm-idle-l", true);
           setSeg("seg-arm-catch-r", true);
           setSeg("seg-spark-r", true);
@@ -1098,6 +1117,12 @@
           }
         } else if (st.mode === "quiz") {
           const q = st.quiz;
+          setSeg("seg-zone-l", true);
+          setSeg("seg-zone-r", true);
+          if (q.ball) {
+            setSeg(`seg-ball-${q.ball.lane}-${q.ball.step}`, true);
+          }
+
           setDigitGroup(eqDigitsA, String(q.a));
           setDigitGroup(eqDigitsB, String(q.b));
           setSeg("seg-op-plus", q.op === "+");
@@ -1147,20 +1172,23 @@
       // Action dispatcher
       function handleQuizSubmitResult(res) {
         if (!res) return;
+        if (quizBallTimer) { clearTimeout(quizBallTimer); quizBallTimer = null; }
         if (res.sound) sound.play(res.sound);
         render();
 
-        if (res.result === "correct" || res.result === "reveal") {
+        if (res.result === "correct" || res.result === "reveal" || res.result === "timeout") {
           if (quizNextTimer) clearTimeout(quizNextTimer);
           quizNextTimer = setTimeout(() => {
             engine.nextQuizQuestion();
             render();
+            scheduleNextQuizBallTick();
           }, res.nextDelayMs);
         } else if (res.result === "retry") {
           if (quizNextTimer) clearTimeout(quizNextTimer);
           quizNextTimer = setTimeout(() => {
             engine.clearQuizFeedbackForRetry();
             render();
+            scheduleNextQuizBallTick();
           }, res.retryDelayMs);
         }
       }
@@ -1205,6 +1233,7 @@
             res = engine.startQuiz(action);
             if (res.sound) sound.play(res.sound);
             render();
+            if (res.startQuizBall) scheduleNextQuizBallTick();
             return;
 
           case "calc":
