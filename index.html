@@ -632,8 +632,9 @@
 
             <!-- Status badges on top right -->
             <g font-family="monospace" font-weight="900" font-size="9.5">
-              <text id="seg-lbl-hi" class="seg" x="250" y="15">BEST</text>
-              <text id="seg-lbl-over" class="seg" x="176" y="15">GAME OVER</text>
+              <text id="seg-lbl-over" class="seg" x="170" y="15">GAME OVER</text>
+              <text id="seg-lbl-pts"  class="seg" x="228" y="15" font-family="'Malgun Gothic', sans-serif">점수</text>
+              <text id="seg-lbl-hi"   class="seg" x="254" y="15">BEST</text>
             </g>
             <!-- Mini 3-digit Best Score (rendered via JS 7-seg) -->
             <g id="lcd-best-digits"></g>
@@ -1060,9 +1061,14 @@
         setSeg("seg-divider-mid", true);
         setSeg("seg-floor", true);
 
-        // Best score always shown when > 0 or in standby/game
-        setSeg("seg-lbl-hi", true);
-        setDigitGroup(bestDigits, String(st.game.bestScore).padStart(3, "0"));
+        // Top-right 3-digit counter: Quiz Score in quiz mode, Game Best Score otherwise
+        if (st.mode === "quiz") {
+          setSeg("seg-lbl-pts", true);
+          setDigitGroup(bestDigits, String(st.quiz.score).padStart(3, "0"));
+        } else {
+          setSeg("seg-lbl-hi", true);
+          setDigitGroup(bestDigits, String(st.game.bestScore).padStart(3, "0"));
+        }
 
         // Mode indicators
         setSeg("seg-mode-game", st.mode === "game");
