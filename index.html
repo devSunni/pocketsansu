@@ -402,7 +402,7 @@
     }
 
     .row-2 {
-      grid-template-columns: 1.25fr 0.85fr 0.85fr 0.95fr 0.9fr 0.9fr 0.9fr;
+      grid-template-columns: 1.45fr 1fr 1fr 1fr 1.25fr;
     }
 
     .row-3 {
@@ -821,17 +821,15 @@
         <button class="hw-btn btn-yellow" type="button" data-action="mul">구구단(×)</button>
       </div>
 
-      <!-- Row 2: Orange Action / Operator / Backspace / Power Keys -->
+      <!-- Row 2: 5 Orange Action / Operator / Backspace Keys -->
       <div class="key-row row-2">
         <button class="hw-btn btn-orange" type="button" data-action="catch">
           <span>공받기</span>
         </button>
         <button class="hw-btn btn-orange" type="button" data-action="op-plus">+</button>
         <button class="hw-btn btn-orange" type="button" data-action="op-minus">−</button>
-        <button class="hw-btn btn-orange" type="button" data-action="backspace" title="지우기 (Backspace)" aria-label="지우기">⌫</button>
         <button class="hw-btn btn-orange" type="button" data-action="equals">=</button>
-        <button class="hw-btn btn-orange" type="button" data-action="on">ON</button>
-        <button class="hw-btn btn-orange" type="button" data-action="off">OFF</button>
+        <button class="hw-btn btn-orange" type="button" data-action="backspace" title="지우기 (Backspace)" aria-label="지우기">지우기</button>
       </div>
 
       <!-- Row 3: 10 Orange Number Keys (1 2 3 4 5 6 7 8 9 0) -->
@@ -849,7 +847,7 @@
       </div>
     </section>
 
-    <div class="kbd-hint">키보드: Space 공받기 · 0-9 숫자 · + - Enter(=) · G/A/S/C/X 모드 · P 전원 · T 사운드 · M 음소거</div>
+    <div class="kbd-hint">키보드: Space 공받기 · 0-9 숫자 · + - Enter(=) · Backspace 지우기 · G/A/S/C/X 모드 · T 사운드 · M 음소거</div>
   </main>
 
   <script src="engine.js"></script>
