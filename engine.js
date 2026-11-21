@@ -11,6 +11,7 @@
   const SPEED_TIERS_MS = [540, 460, 400, 350, 305, 265, 230, 200, 175, 150, 130];
   const CATCH_STEP = 4;
   const GROUND_STEP = 5;
+  const MAX_LIVES = 3;
   const POST_CATCH_DEBOUNCE_MS = 140;
   const CALC_MAX = 999999;
 
@@ -56,6 +57,7 @@
       // Game state
       game: {
         status: "idle", // 'idle' | 'playing' | 'gameover'
+        lives: MAX_LIVES,
         score: 0,
         bestScore: loadBest(),
         balls: [], // [{ id, lane: 0|1, step: 0..5 }]
@@ -68,6 +70,8 @@
 
       // Quiz state
       quiz: {
+        status: "idle", // 'idle' | 'playing' | 'gameover'
+        lives: MAX_LIVES,
         type: null, // 'add' | 'sub' | 'mul'
         a: 0,
         b: 0,
@@ -146,6 +150,7 @@
       state.mode = "game";
       state.pierrotPose = "idle";
       state.game.status = "playing";
+      state.game.lives = MAX_LIVES;
       state.game.score = 0;
       state.game.balls = [];
       state.game.missReason = null;
@@ -165,6 +170,24 @@
         lane,
         step: 0
       });
+    }
+
+    function applyGameMiss(reason) {
+      const g = state.game;
+      g.lives = Math.max(0, g.lives - 1);
+      g.missReason = reason;
+      state.pierrotPose = "miss";
+      if (g.score > g.bestScore) {
+        g.bestScore = g.score;
+        saveBest(g.bestScore);
+      }
+      if (g.lives <= 0) {
+        g.status = "gameover";
+        return { sound: "gameOver", active: false, gameOver: true, reason, lives: 0 };
+      }
+      // Remove dropped balls so player gets a clean beat to recover
+      g.balls = g.balls.filter((b) => b.step < GROUND_STEP);
+      return { sound: "wrong", active: true, missed: true, gameOver: false, reason, lives: g.lives };
     }
 
     function tickGame() {
@@ -188,14 +211,7 @@
       }
 
       if (dropped) {
-        g.status = "gameover";
-        g.missReason = "drop";
-        state.pierrotPose = "miss";
-        if (g.score > g.bestScore) {
-          g.bestScore = g.score;
-          saveBest(g.bestScore);
-        }
-        return { sound: "gameOver", active: false, gameOver: true, reason: "drop" };
+        return applyGameMiss("drop");
       }
 
       // Spawn logic
@@ -224,7 +240,6 @@
       if (state.mode !== "game") return { sound: "click" };
       const g = state.game;
       if (g.status !== "playing") {
-        // Allow restarting game easily or ignore; spec says '게임 키' starts game
         return { sound: null };
       }
 
@@ -262,15 +277,8 @@
         return { sound: null, debounced: true };
       }
 
-      // Timing miss -> Game Over
-      g.status = "gameover";
-      g.missReason = "timing";
-      state.pierrotPose = "miss";
-      if (g.score > g.bestScore) {
-        g.bestScore = g.score;
-        saveBest(g.bestScore);
-      }
-      return { sound: "gameOver", gameOver: true, reason: "timing" };
+      // Timing miss -> Lose 1 heart (Game Over when 0 hearts left)
+      return applyGameMiss("timing");
     }
 
     // --- QUIZ MODE ---
@@ -314,23 +322,37 @@
       state.mode = "quiz";
       state.game.status = "idle";
       state.game.balls = [];
+      state.quiz.status = "playing";
+      state.quiz.lives = MAX_LIVES;
       state.quiz.score = 0;
       state.quiz.nextLane = randInt(0, 1);
       generateQuestion(type);
       return { sound: "click", stopTimers: true, startQuizBall: true };
     }
 
+    function applyQuizFailure(resultType) {
+      const q = state.quiz;
+      q.lives = Math.max(0, q.lives - 1);
+      q.feedback = "reveal";
+      q.input = String(q.answer);
+      state.pierrotPose = "miss";
+      if (q.ball) q.ball.step = GROUND_STEP;
+
+      if (q.lives <= 0) {
+        q.status = "gameover";
+        return { sound: "gameOver", active: false, gameOver: true, result: "gameover", lives: 0 };
+      }
+      return { sound: "wrong", active: false, gameOver: false, result: resultType, lives: q.lives, nextDelayMs: 1400 };
+    }
+
     function tickQuizBall() {
-      if (!isInteractive() || state.mode !== "quiz" || state.quiz.feedback !== null || !state.quiz.ball) {
+      if (!isInteractive() || state.mode !== "quiz" || state.quiz.status !== "playing" || state.quiz.feedback !== null || !state.quiz.ball) {
         return { sound: null, active: false };
       }
       const q = state.quiz;
       q.ball.step += 1;
       if (q.ball.step >= GROUND_STEP) {
-        q.feedback = "reveal";
-        q.input = String(q.answer);
-        state.pierrotPose = "miss";
-        return { sound: "wrong", active: false, result: "timeout", nextDelayMs: 1400 };
+        return applyQuizFailure("timeout");
       }
       return {
         sound: q.ball.lane === 0 ? "tickL" : "tickR",
@@ -340,13 +362,13 @@
     }
 
     function nextQuizQuestion() {
-      if (!isInteractive() || state.mode !== "quiz") return false;
+      if (!isInteractive() || state.mode !== "quiz" || state.quiz.status !== "playing") return false;
       generateQuestion(state.quiz.type);
       return true;
     }
 
     function clearQuizFeedbackForRetry() {
-      if (!isInteractive() || state.mode !== "quiz") return false;
+      if (!isInteractive() || state.mode !== "quiz" || state.quiz.status !== "playing") return false;
       state.quiz.input = "";
       state.quiz.feedback = null;
       state.pierrotPose = "idle";
@@ -354,7 +376,7 @@
     }
 
     function submitQuizAnswer() {
-      if (!isInteractive() || state.mode !== "quiz") return { sound: null };
+      if (!isInteractive() || state.mode !== "quiz" || state.quiz.status !== "playing") return { sound: null };
       const q = state.quiz;
       if (q.feedback !== null || q.input === "") return { sound: null };
 
@@ -370,10 +392,7 @@
         q.attempts += 1;
         state.pierrotPose = "miss";
         if (q.attempts >= 2) {
-          if (q.ball) q.ball.step = GROUND_STEP;
-          q.feedback = "reveal";
-          q.input = String(q.answer);
-          return { sound: "wrong", result: "reveal", nextDelayMs: 1400 };
+          return applyQuizFailure("reveal");
         }
         q.feedback = "wrong";
         return { sound: "wrong", result: "retry", retryDelayMs: 750 };
@@ -569,6 +588,7 @@
     getTickInterval,
     CATCH_STEP,
     GROUND_STEP,
+    MAX_LIVES,
     STORAGE_KEY_BEST
   };
 });

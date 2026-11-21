@@ -645,6 +645,11 @@
 
             <!-- ===== LEFT GRAPHIC SEGMENT STAGE (PIERROT & FALLING BALLS) ===== -->
             <g id="lcd-stage">
+              <!-- 3-Heart Life Segments (♥♥♥) above Pierrot -->
+              <path id="seg-heart-1" class="seg" d="M64 33 C64 33 59 29.6 59 26.8 C59 25.1 60.4 24 61.8 24 C62.8 24 63.6 24.6 64 25.4 C64.4 24.6 65.2 24 66.2 24 C67.6 24 69 25.1 69 26.8 C69 29.6 64 33 64 33 Z"/>
+              <path id="seg-heart-2" class="seg" d="M82 33 C82 33 77 29.6 77 26.8 C77 25.1 78.4 24 79.8 24 C80.8 24 81.6 24.6 82 25.4 C82.4 24.6 83.2 24 84.2 24 C85.6 24 87 25.1 87 26.8 C87 29.6 82 33 82 33 Z"/>
+              <path id="seg-heart-3" class="seg" d="M100 33 C100 33 95 29.6 95 26.8 C95 25.1 96.4 24 97.8 24 C98.8 24 99.6 24.6 100 25.4 C100.4 24.6 101.2 24 102.2 24 C103.6 24 105 25.1 105 26.8 C105 29.6 100 33 100 33 Z"/>
+
               <!-- Lane L Balls (steps 0..5) -->
               <circle id="seg-ball-0-0" class="seg" cx="32" cy="34" r="6.5"/>
               <circle id="seg-ball-0-1" class="seg" cx="32" cy="53" r="6.5"/>
@@ -993,11 +998,11 @@
       function scheduleNextQuizBallTick() {
         if (quizBallTimer) clearTimeout(quizBallTimer);
         const st = engine.getState();
-        if (st.power !== "on" || st.mode !== "quiz" || st.quiz.feedback !== null || !st.quiz.ball) return;
+        if (st.power !== "on" || st.mode !== "quiz" || st.quiz.status !== "playing" || st.quiz.feedback !== null || !st.quiz.ball) return;
         const interval = engine.getQuizBallInterval(st.quiz.score);
         quizBallTimer = setTimeout(() => {
           const res = engine.tickQuizBall();
-          if (res.result === "timeout") {
+          if (res.result === "timeout" || res.result === "gameover") {
             handleQuizSubmitResult(res);
           } else {
             if (res.sound) sound.play(res.sound);
@@ -1110,6 +1115,9 @@
           setSeg("seg-zone-l", true);
           setSeg("seg-zone-r", true);
         } else if (st.mode === "game") {
+          setSeg("seg-heart-1", st.game.lives >= 1);
+          setSeg("seg-heart-2", st.game.lives >= 2);
+          setSeg("seg-heart-3", st.game.lives >= 3);
           setSeg("seg-zone-l", true);
           setSeg("seg-zone-r", true);
           setSeg("seg-lbl-score", true);
@@ -1123,6 +1131,10 @@
           }
         } else if (st.mode === "quiz") {
           const q = st.quiz;
+          setSeg("seg-heart-1", q.lives >= 1);
+          setSeg("seg-heart-2", q.lives >= 2);
+          setSeg("seg-heart-3", q.lives >= 3);
+          setSeg("seg-lbl-over", q.status === "gameover");
           setSeg("seg-zone-l", true);
           setSeg("seg-zone-r", true);
           if (q.ball) {

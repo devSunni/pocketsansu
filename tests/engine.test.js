@@ -77,28 +77,37 @@ test("Pierrot Catch Game: single ball catch, score increment, high score persist
   assert.equal(eng.getState().game.status, "playing");
 });
 
-test("Pierrot Catch Game: timing miss and floor drop both trigger game over", () => {
+test("Pierrot Catch Game: 3 hearts — misses deduct lives and 3rd miss triggers game over", () => {
   let fakeNow = 2000;
   const eng = createSansuEngine({ storage: createMemoryStorage(), random: () => 0.1, now: () => fakeNow });
   eng.pressOn();
   eng.finishBoot();
   eng.startGame();
+  assert.equal(eng.getState().game.lives, 3);
 
-  // Ball is at step 0 -> pressing catch too early causes timing miss
-  const earlyRes = eng.pressCatch();
-  assert.equal(earlyRes.gameOver, true);
-  assert.equal(earlyRes.reason, "timing");
-  assert.equal(earlyRes.sound, "gameOver");
-  assert.equal(eng.getState().game.status, "gameover");
+  // 1st timing miss -> 2 hearts left, still playing
+  const miss1 = eng.pressCatch();
+  assert.equal(miss1.gameOver, false);
+  assert.equal(miss1.lives, 2);
+  assert.equal(miss1.sound, "wrong");
+  assert.equal(eng.getState().game.status, "playing");
 
-  // Restart and let ball drop to GROUND_STEP (5)
-  eng.startGame();
+  // 2nd timing miss -> 1 heart left, still playing
+  fakeNow += 500;
+  const miss2 = eng.pressCatch();
+  assert.equal(miss2.gameOver, false);
+  assert.equal(miss2.lives, 1);
+  assert.equal(eng.getState().game.status, "playing");
+
+  // 3rd miss via floor drop -> 0 hearts, GAME OVER
   for (let i = 0; i < GROUND_STEP - 1; i++) {
     assert.equal(eng.tickGame().active, true);
   }
   const dropRes = eng.tickGame();
   assert.equal(dropRes.gameOver, true);
+  assert.equal(dropRes.lives, 0);
   assert.equal(dropRes.reason, "drop");
+  assert.equal(dropRes.sound, "gameOver");
   assert.equal(eng.getState().game.status, "gameover");
 });
 
@@ -192,14 +201,15 @@ test("Quiz Mode: Addition, Subtraction, Multiplication generation, auto-submit, 
   eng.clearQuizFeedbackForRetry();
   assert.equal(eng.getState().quiz.input, "");
 
-  // Wrong answer 2nd attempt -> ball crashes to ground & reveal correct answer
+  // Wrong answer 2nd attempt -> loses 1st heart (2 left) & reveals answer
   for (const ch of wrongAns) eng.pressDigit(ch);
   const w2 = eng.pressEquals();
   assert.equal(w2.result, "reveal");
+  assert.equal(w2.lives, 2);
   assert.equal(eng.getState().quiz.ball.step, GROUND_STEP);
   assert.equal(eng.getState().quiz.input, String(q.answer));
 
-  // Next question timeout: ball falls to GROUND_STEP -> timeout reveals answer
+  // Next question timeout -> loses 2nd heart (1 left)
   eng.nextQuizQuestion();
   assert.equal(eng.getState().quiz.ball.step, 0);
   for (let i = 0; i < GROUND_STEP - 1; i++) {
@@ -207,8 +217,19 @@ test("Quiz Mode: Addition, Subtraction, Multiplication generation, auto-submit, 
   }
   const toRes = eng.tickQuizBall();
   assert.equal(toRes.result, "timeout");
-  assert.equal(eng.getState().quiz.ball.step, GROUND_STEP);
-  assert.equal(eng.getState().quiz.input, String(eng.getState().quiz.answer));
+  assert.equal(toRes.lives, 1);
+
+  // 3rd failure -> 0 hearts -> Quiz GAME OVER
+  eng.nextQuizQuestion();
+  for (let i = 0; i < GROUND_STEP - 1; i++) {
+    assert.equal(eng.tickQuizBall().active, true);
+  }
+  const overRes = eng.tickQuizBall();
+  assert.equal(overRes.result, "gameover");
+  assert.equal(overRes.gameOver, true);
+  assert.equal(overRes.sound, "gameOver");
+  assert.equal(eng.getState().quiz.status, "gameover");
+  assert.equal(eng.getState().quiz.lives, 0);
 });
 
 // ---------- CALCULATOR MODE TESTS ----------
